@@ -10,8 +10,10 @@ from os import mkdir
 from os.path import expanduser, isdir, join
 import re
 import requests
-from time import time, localtime, strftime, strptime
+from time import time, localtime, strftime, strptime, sleep
 from calendar import timegm
+
+import serial
 
 import Tkinter as tk
 import ttk
@@ -68,6 +70,9 @@ class AppWindow:
     EVENT_VIRTUAL  = 35
 
     def __init__(self, master):
+
+        self.ser = serial.Serial('/dev/cu.wchusbserial1490')
+        sleep(3)
 
         self.holdofftime = config.getint('querytime') + companion.holdoff
         self.session = companion.Session()
@@ -266,6 +271,9 @@ class AppWindow:
             prefs.PreferencesDialog(self.w, self.postprefs)
         else:
             self.login()
+
+        self.ser.write(b'!0Initialising...\n')
+        self.ser.flush()
 
     # callback after the Preferences dialog is applied
     def postprefs(self):
@@ -548,6 +556,10 @@ class AppWindow:
                 self.system['text'] = monitor.system or ''
                 self.system['image'] = ''
                 self.edsm.link(monitor.system)
+                self.ser.write('!1'+self.system['text'].encode('utf-8')+'\n')
+                self.ser.flush()
+                self.ser.write('!0'+self.station['text'].encode('utf-8')+'\n')
+                self.ser.flush()
             self.w.update_idletasks()
 
             # Send interesting events to EDSM

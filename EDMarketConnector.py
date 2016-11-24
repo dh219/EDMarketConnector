@@ -552,13 +552,16 @@ class AppWindow:
             self.station['text'] = monitor.station or (EDDB.system(monitor.system) and self.STATION_UNDOCKED or '')
             if system_changed or station_changed:
                 self.status['text'] = ''
+                if self.station['text'] == self.STATION_UNDOCKED:
+                    self.ser.write('!0 \n')
+                else:
+                    self.ser.write('!0'+self.station['text'].encode('utf-8')+' \n')
+                self.ser.flush()
             if system_changed:
                 self.system['text'] = monitor.system or ''
                 self.system['image'] = ''
                 self.edsm.link(monitor.system)
-                self.ser.write('!1'+self.system['text'].encode('utf-8')+'\n')
-                self.ser.flush()
-                self.ser.write('!0'+self.station['text'].encode('utf-8')+'\n')
+                self.ser.write('!1'+self.system['text'].encode('utf-8')+' \n')
                 self.ser.flush()
             self.w.update_idletasks()
 
